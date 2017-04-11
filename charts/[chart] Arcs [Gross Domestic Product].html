@@ -1,0 +1,124 @@
+<!--
+Using the Arc generator. 
+Define its 
+
+	innerRadius, 
+	outerRadius, 
+	startAngle and 
+	endAngle, 
+
+and your arc is ready. 
+
+The following code generates an arc whose start angle is 0 and its end angle is PI, 
+while its inner and outer radii are 40 and 60 pixels. 
+
+Note that D3 uses Radian angles, which means that a complete circle
+goes from 0 to 2PI, rather than 0 to 360 degrees:
+
+	var arc = d3.svg.arc()
+						.innerRadius(40)
+						.outerRadius(60)
+						.startAngle(0)
+						.endAngle(Math.PI);
+-->
+
+<html>
+<head>
+	<title>D3 play ground</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Arc</h1>
+	<script type="text/javascript">
+		var gdp = [
+			{ 'country': 'Germany', 'color': '#2ca02c', 'value': 3 	},
+			{ 'country': 'Japan', 	'color': '#9467bd', 'value': 5 	},
+			{ 'country': 'China', 	'color': '#d62728', 'value': 9 	},
+			{ 'country': 'USA', 	'color': '#1f77b4', 'value': 17 },
+		];
+		
+		var w = 400;
+		var h = 300;
+		var radiusMultiplier = 25;
+		
+		var svg = d3.select('body').append('svg')
+										.attr("width", w)
+										.attr("height", h)
+		var maxGdp = d3.max(gdp, function(o) {
+			return o.value;
+		});
+		
+		var angleScale = d3.scale
+								.linear()
+								.domain([0, maxGdp])
+								.range([0, 1.5*Math.PI])
+		
+		//Next, set the arc generator. 
+		//The angles depend on the data. 
+		//All four arcs have a start angle of 0, 
+		//while their end angle is function of the GDP value.
+		var arc = d3.svg.arc()
+							.innerRadius(function(d, i) {
+								return (i+1)*radiusMultiplier;
+							})
+							.outerRadius(function(d, i) {
+								return (i+2)*radiusMultiplier;
+							})
+							.startAngle(function(d) {
+								return angleScale(0);
+							})
+							.endAngle(function(d) {
+								return angleScale(d.value);
+							})
+		
+		var g = svg.append("g");
+		
+		//add shapes		
+		g.selectAll("path")
+			.data(gdp)
+			.enter()
+			.append("path")
+			.attr("d", arc)
+			.attr("fill", function(d) {
+				return d.color;
+			})
+			.attr("stroke", "#FFF")
+			.attr("stroke-width", "1px")
+ 
+		//add text
+		g.selectAll(".arc-text")
+			.data(gdp)
+			.enter()
+			.append("text")
+			.text(function(d) {
+				return d.country + " ($" + d.value + " Trillion)";
+			})
+			.attr("x", function(d, i) {
+				return -10;
+			})
+			.attr("y", function(d, i) {
+				return -(i+1)*radiusMultiplier;
+			})
+			.attr("dy", -8)
+			.attr("class", "arc-text")
+			
+		g.attr("transform", "translate(" + w/2 + "," + h/2 + ")");
+		//x and y attrs are for abs positions, while
+		//dx and dy attrs can be used to shift an object in relation to its x and y coords
+	</script>
+	
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+		
+		.arc-text {
+			text-anchor: end;
+			font-size: 19px;
+			font-family: sans-serif;
+		}
+	</style>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!--
+Scatter plot, where each dot represents one Linux distribution. 
+The x-axis has the years where each distribution had its first release,
+the y-axis shows their popularity, via the amount of visits each one received 
+in the last six months on distrowatch.com
+
+Additionally, as some of these distributions are based on other ones, 
+we need to show this in the form of links between them, hence, the need for the diagonals
+-->
+
+<html>
+<head>
+	<title>D3 play ground</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Dots and SVG diagonal</h1>
+	<svg width="200" height="200" id="drawing-area">
+		
+	</svg>
+	<script type="text/javascript">
+		/* start ===== Utils ===== */
+		//D3 provides min() and max() function so you can easily tell 
+		//the minimum and maximum values within an array.
+		var getDomain = function(data, attr) {
+			var startPoint = d3.min(data, function(dataItem) {
+				return dataItem[attr];
+			});
+			var endPoint = d3.max(data, function(dataItem) {
+				return dataItem[attr];
+			});
+			return [startPoint, endPoint];
+		}
+		
+		var getCoords = function(x, y) {
+			return {'x': x, 'y': y};
+		}
+		/* end ===== Utils ===== */
+		
+		
+		//The first set, distros, contains the names of the Linux distributions, 
+		//the years they were created and the visits they got. 
+		distros = [
+			{ 	'name': 'Debian', 	'year': 1993, 	'visits': 1820	},
+			{ 	'name': 'Ubuntu', 	'year': 2004, 	'visits': 1588	},
+			{ 	'name': 'Kubuntu', 	'year': 2005, 	'visits': 363	},
+			{ 	'name': 'Mint', 	'year': 2006, 	'visits': 3069	},
+			{	'name': 'Knoppix', 	'year': 2000,	'visits': 219	}
+		]; 
+		
+		//The second set, relations, will show the relationships between those distributions,
+		//and which of them is based on the other. 
+		//The “from” and “to” fields contain references to elements in the distros array. 
+		relations = [
+			{	'from': 0, 'to': 1	},
+			{	'from': 1, 'to': 2	},
+			{	'from': 2, 'to': 3	},
+			{	'from': 0, 'to': 4	}
+		]; 
+		
+		var svg_w = 600;
+		var svg_h = 300;
+		
+		var margin = 60;//Margin around our chart 
+		var svgArea = d3.select("body")
+						.append("svg")
+						.attr('width', svg_w)
+						.attr('height', svg_h);
+		
+		//scales
+		var xScale = d3.scale.linear()
+								.domain(getDomain(distros, 'year'))
+								.range([margin, svg_w - margin]);
+		var yScale = d3.scale.linear()
+								.domain(getDomain(distros, 'visits'))
+								.range([margin, svg_h - margin]); 
+							
+		//diagonals
+		var gen = d3.svg.diagonal()
+							.source(function(d) {
+								var x = xScale(distros[d.from].year);
+								var y = yScale(distros[d.from].visits);
+								return getCoords(x, y);
+							})
+							.target(function(d) {
+								var x = xScale(distros[d.to].year);
+								var y = yScale(distros[d.to].visits);
+								return getCoords(x, y);
+							});
+		svgArea.selectAll("path")
+				.data(relations)
+				.enter()
+				.append("path")
+				.attr("d", gen)
+				.attr("stroke", "#FF5599")
+				.attr("stroke-width", "10px")
+				.attr("fill", "none")
+				
+		//dots
+		svgArea.selectAll(".distrodot")
+				.data(distros)
+				.enter()
+				.append("circle")
+				.attr("class", "distrodot") 
+				.attr("cx", function (d, i) {
+					return xScale(d.year);
+				})
+				.attr("cy", function (d, i) {
+					return yScale(d.visits);
+				})
+				.attr("r", "26")
+				.attr("stroke", "#000000")
+				.attr("stroke-width", "2px")
+				.attr("fill", "#5599FF")
+			
+		//text				
+		svgArea.selectAll(".distrodot-text")
+				.data(distros)
+				.enter()
+				.append("text")
+				.attr("class", "distrodot-text")
+				.style("text-anchor", "middle")
+				.text(function(d) {
+					return d['name'];
+				})
+				.attr("x", function(d) {
+					return xScale(d.year);
+				})
+				.attr("y", function(d) {
+					return (yScale(d.visits) + 3) + "px";
+				})
+		
+		//axis
+		var xAxis = d3.svg.axis()
+							.scale(xScale)
+							.orient("bottom")
+							.tickFormat(d3.format("d"));
+							
+		svgArea.append("g")
+					.attr("transform", "translate(0," + (svg_h - 20)+ ")")
+					.attr("class", "axis")
+					.call(xAxis);
+ 
+
+	</script>
+	
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	
+		.axis path,
+		.axis line {
+			fill: none;
+			stroke: #BBB;
+			shape-rendering: crispEdges;
+		}
+		
+		.axis text {
+			font-family: sans-serif;
+			font-size: 10px;
+			fill: #5599FF;
+			stroke: #000;
+			stroke-width: 0.4px;
+		}
+		
+		.distrodot-text{
+			font-family: sans-serif;
+			font-size: 10px;
+			fill: #FFF;
+			stroke: none;
+		}
+	</style>
+</body>
+</html>
