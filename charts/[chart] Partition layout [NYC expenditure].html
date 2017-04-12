@@ -1,0 +1,120 @@
+<!--
+
+Inner circles represent parents, 
+and the outer circles represent their children; sub-department here. 
+
+This layered representation of the data helps the reader of your chart 
+explore it one layer at a time. 
+Additionally, its pie-chart-like structure helps them see the size of each child node 
+in comparison to its parent
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Partition layout</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+		var nybudget = {
+				'name': 'NYC Budget 2015',
+				'children': [{
+					'name': 'Personal Services',
+					'children': [{
+						'name': 'Salaries and Wages',
+						'value': 24023 
+					},{
+						'name': 'Pensions',
+						'value': 8621 
+					},{
+						'name': 'Fringe Benefits',
+						'value': 8635
+					},{
+						'name': 'Retiree Health Benefits',
+						'value': 955
+					}]
+				},{
+					'name': 'Other Services',
+					'children': [{
+						'name': 'Medical Assistance',
+						'value': 6275
+					},{
+						'name': 'Public Assistance',
+						'value': 1472
+					},{
+						'name': 'All Other',
+						'value': 25149
+					}]
+				},{
+					'name': 'Debt Service',
+					'value': 5971
+				}]
+			}
+		
+		var w = 600;
+		var h = 600;
+		var margin = 0;
+		var colors = d3.scale.category10();
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+		
+		var partition = d3.layout.partition();
+		//var partition = d3.layout.partition().size([w, h])
+		//We are going to use two scales, one for distances and one for angles
+		var radiusScale = d3.scale.linear().domain([0,1]).range([0, 0.5*Math.min(w,h)]);
+		var angleScale = d3.scale.linear().domain([0,1]).range([0, 2*Math.PI]);
+		
+		//careate arc generator, using defined scales
+		var arc = d3.svg.arc()
+			.innerRadius(function(d) {
+				return radiusScale(d.y);
+			})
+			.outerRadius(function(d) {
+				return radiusScale(d.y + d.dy)
+			})
+			.startAngle(function(d) {
+				return angleScale(d.x);
+			})
+			.endAngle(function(d) {
+				return angleScale(d.x + d.dx);
+			})
+			
+		//draw arcs using arc generator
+		//in combination with partition layout
+		svg.selectAll('path')
+			.data(partition(nybudget))
+			.enter()
+			.append('path')
+			.attr('d', arc)
+			.attr('fill', function(d,i) {
+				if (d.depth < 2) {
+					return colors(d.name);
+				} else {
+					return colors(d.parent.name);
+				}
+			})
+			.attr('stroke', '#FFF')
+			.attr('stroke-width', '2px')
+			.attr('transform', 'translate(' + (margin+w/2) + ',' + (margin+h/2) + ')')		
+			
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>

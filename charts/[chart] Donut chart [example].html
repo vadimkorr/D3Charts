@@ -1,0 +1,56 @@
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Donut chart</h1>
+	<!--svg></svg-->
+	
+	<script type="text/javascript">
+		var w = 200;
+		var h = 200;
+		
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+			
+		//nice set of 10 colors
+		//there are also .category20(), .category20b(), .category20c() 
+		var colors = d3.scale.category10();
+		var arc = d3.svg.arc()
+			.innerRadius(30)
+			.outerRadius(80)
+			.startAngle(function(d) { return d['start']; })
+			.endAngle(function(d) { return d['end']; });
+			
+		svg.selectAll('path')
+			.data([
+				{ 'start': 0, 'end': Math.PI },
+				{ 'start': Math.PI, 'end': 2*Math.PI }
+			])
+			.enter()
+			.append('path')
+			.attr('d', arc)
+			.attr('fill', function(d, i) {
+				return colors(i);
+			})
+			.attr('stroke', '#FFF')
+			.attr('stroke-width', '3px')
+			.attr('transform', 'translate(' + w/2 + ',' + h/2 + ')');		
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>

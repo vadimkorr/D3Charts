@@ -1,0 +1,73 @@
+<!--
+
+
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Force</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+		var coloredBallsData = [
+			{'color': '#000044'}, {'color': '#004444'}, {'color': '#444444'},
+			{'color': '#444488'}, {'color': '#448888'}, {'color': '#888888'},
+			{'color': '#8888CC'}, {'color': '#88CCCC'}, {'color': '#CCCCCC'}, 
+		];
+		var w = 450;
+		var h = 350;
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+		
+		//The two forces specified here are charge and gravity. 
+		//The charge dictates whether the nodes should
+		//be attracted to or repelled from each other. 
+		//A negative charge means they will be repulsive, 
+		//while a positive value lets them get attracted to each other. 
+		//The gravity, by contrast, simulates a virtual spring connecting
+		//each node to the centre of the drawing area, 
+		//that is, w/2 and h/2. If not specified, the default charge is –30
+		//and the default gravity is 0.1.
+		var force = d3.layout.force()
+			.size([w, h])
+			.charge(-850)
+			.gravity(0.7)
+			.nodes(coloredBallsData);
+		
+		var nodes = svg.selectAll('circle')
+			.data(coloredBallsData)
+			.enter()
+			.append('circle')
+			.style('fill', function(d,i) { return d.color; });
+			
+		//Finally, set the nodes position with each tick and start the force layout in the end
+		force.on('tick', function() {
+			nodes
+				.attr('cx', function(d) { return d.x; })
+				.attr('cy', function(d) { return d.y; })
+				.attr('r', 40);
+		});
+		force.start();
+		
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>

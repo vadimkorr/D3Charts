@@ -1,0 +1,75 @@
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Semi Donut chart</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+		var w = 600;
+		var h = 600;
+		var svg = d3.select("body").append("svg")
+			.attr("width", w)
+			.attr("height", h);
+		var colors = d3.scale.category10();
+	
+		var transport = [
+			{ 'mean': 'Car', 'value': 20 },
+			{ 'mean': 'Bus', 'value': 60 },
+			{ 'mean': 'Walk', 'value': 15 },
+			{ 'mean': 'Bike', 'value': 5 }
+		];
+		
+		var pieScale = d3.scale.linear().domain([0, 100]).range([0, 2*Math.PI]);
+		/*if you call myPie() and give it an array of numbers, 
+		it will return an array of objects each with its corresponding
+		startAngle(), endAngle(), and some other attributes such as the original data you passed to it.*/ 
+		//Define pie layout
+		var pie = d3.layout.pie()
+			.startAngle(-0.5*Math.PI)
+			.endAngle(0.5*Math.PI)
+			.padAngle(0.04)
+			.sort(null)
+			.value(function(d) {
+				return d.value;
+			})
+		//define arc generator
+		var arc = d3.svg.arc()
+			.innerRadius(function(d, i) { return 30 + 20*i; })//.innerRadius(40)
+			.outerRadius(function(d, i) { return 120 + 20*i; })//.outerRadius(150)
+			.startAngle(function(d) {
+				return d.startAngle;
+			})
+			.endAngle(function(d) {
+				return d.endAngle;
+			});
+			
+		//use layout and generator in drawing the chart
+		svg.selectAll("path")
+			.data(pie(transport))
+			.enter()
+			.append("path")
+			.attr("d", arc)
+			.attr("fill", function(d, i) {
+				return colors(i);
+			})
+			.attr("transform", "translate(" + w/2 + "," + h/2 + ")");
+			
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>

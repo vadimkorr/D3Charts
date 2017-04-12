@@ -1,0 +1,123 @@
+<!--
+
+
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Pack layout</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+		var nybudget = {
+				'name': 'NYC Budget 2015',
+				'children': [{
+					'name': 'Personal Services',
+					'children': [{
+						'name': 'Salaries and Wages',
+						'value': 24023 
+					},{
+						'name': 'Pensions',
+						'value': 8621 
+					},{
+						'name': 'Fringe Benefits',
+						'value': 8635
+					},{
+						'name': 'Retiree Health Benefits',
+						'value': 955
+					}]
+				},{
+					'name': 'Other Services',
+					'children': [{
+						'name': 'Medical Assistance',
+						'value': 6275
+					},{
+						'name': 'Public Assistance',
+						'value': 1472
+					},{
+						'name': 'All Other',
+						'value': 25149
+					}]
+				},{
+					'name': 'Debt Service',
+					'value': 5971
+				}]
+			}
+		
+		var w = 400;
+		var h = 400;
+		
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+			
+		var colors = d3.scale.category10();
+			
+		var pack = d3.layout.pack().size([w, h]);
+		svg.selectAll('circle')
+			.data(pack(nybudget))
+			.enter()
+			.append('circle')
+			.attr('cx', function(d,i) { return d.x; })
+			.attr('cy', function(d,i) { return d.y; })
+			.attr('r', 	function(d,i) { return d.r; })
+			.attr('fill', function(d,i) {
+				if (d.depth == 0) {
+					return '#EEE';
+				} else if (d.depth == 1) {
+					return '#BBB';
+				} else {
+					return colors(d.parent.name);
+				}
+			})
+			.attr('stroke', '#DDD')
+			.attr('stroke-width', 2);			
+		
+		svg.selectAll('text')
+			.data(pack(nybudget))
+			.enter()
+			.append('text')
+			.attr('x', function(d,i) {
+				return (d.x);
+			})
+			.attr('y', function(d,i) {
+				if (d.children) {
+					return d.y - d.r + 30;
+				} else {
+					return (d.y);
+				}
+			})
+			.text(function(d,i) {
+				return d.name;
+			})
+			.style('text-anchor', 'middle')
+			.attr('font-size', function(d,i) {
+				return 20 / (d.depth + 1);
+			})
+			.attr('class', 'name-text');
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+		
+		.name-text {
+			font-family: sans-serif; 
+			fill: #000;
+		}
+	</style>
+</body>
+</html>

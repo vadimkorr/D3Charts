@@ -1,0 +1,153 @@
+<!--
+
+
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Stacked area chart</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+		var energy = [{
+			"name": "Coal",
+			"values": [
+				{ "x": 1949, "y": 11.980905, "y0": 0},
+				{ "x": 1950, "y": 12.347109, "y0": 0},
+				{ "x": 1951, "y": 17.347579, "y0": 0},
+				{ "x": 1952, "y": 18.334759, "y0": 0},
+				{ "x": 1953, "y": 16.906309, "y0": 0},
+				{ "x": 1954, "y": 20.076109, "y0": 0},
+				{ "x": 1955, "y": 21.367809, "y0": 0},
+				{ "x": 1956, "y": 19.387109, "y0": 0},
+				{ "x": 1957, "y": 17.567709, "y0": 0},
+				{ "x": 1958, "y": 21.546709, "y0": 0},
+			]},{
+			"name": "Nat. Gas",
+			"values": [
+				{ "x": 1949, "y": 5.145142, "y0": 11.980905},
+				{ "x": 1950, "y": 5.968371, "y0": 12.347109},	
+				{ "x": 1951, "y": 5.347579, "y0": 17.347579},
+				{ "x": 1952, "y": 7.334759, "y0": 18.334759},
+				{ "x": 1953, "y": 6.956557, "y0": 16.906309},
+				{ "x": 1954, "y": 7.043523, "y0": 20.076109},
+				{ "x": 1955, "y": 8.473459, "y0": 21.367809},
+				{ "x": 1956, "y": 7.054763, "y0": 19.387109},
+				{ "x": 1957, "y": 7.537376, "y0": 17.567709},
+				{ "x": 1958, "y": 9.237656, "y0": 21.546709},
+			]},{
+			"name": "Oil",
+			"values": [
+				{ "x": 1949, "y": 4.145142,  "y0": 5.145142},
+				{ "x": 1950, "y": 2.968371,  "y0": 5.968371},	
+				{ "x": 1951, "y": 3.347579,  "y0": 5.347579},
+				{ "x": 1952, "y": 3.334759,  "y0": 7.334759},
+				{ "x": 1953, "y": 5.956557,  "y0": 6.956557},
+				{ "x": 1954, "y": 7.043523,  "y0": 7.043523},
+				{ "x": 1955, "y": 8.473459,  "y0": 8.473459},
+				{ "x": 1956, "y": 10.054763, "y0": 7.054763},
+				{ "x": 1957, "y": 11.537376, "y0": 7.537376},
+				{ "x": 1958, "y": 10.237656, "y0": 9.237656},
+			]},
+		]; 
+	
+		var stack = d3.layout.stack().values(function(d) {
+			return d.values;
+		});
+		var energy_stack = stack(energy);
+		
+		var w = 690;
+		var h = 380;
+		var h_margin = 20;
+		var v_margin = 55;
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+		var colors = d3.scale.category10();
+		
+		var max_y = d3.max(
+			energy_stack[energy_stack.length-1].values,
+			function(d) {
+				return d.y0 + d.y;
+			}
+		);
+		
+		var xRange = energy_stack[0].values.filter(function(e,i,a) {
+			return (i == 0 || i == (a.length - 1)) ? true : false; 
+		}).map(function(d) {
+			return d.x
+		});
+		
+		var x = d3.scale.linear().range([h_margin, w - h_margin]).domain(xRange);
+		var y = d3.scale.linear().range([h - v_margin, v_margin]).domain([0, max_y]);
+		
+		var area = d3.svg.area()
+			.interpolate('basis')
+			.x(function(d, i) { return x(d.x); })
+			.y0(function(d) { return y(d.y0); })
+			.y1(function(d) { return y(d.y0 + d.y); });
+			
+		svg.selectAll(".layer")
+			.data(energy_stack)
+			.enter()
+			.append("path")
+			.attr("class", "layer")
+			.attr("d", function(d) {
+				return area(d["values"]);
+			})
+			.style('fill', function(d, i) {
+				return colors(i)
+			})
+			.style('opacity', 0.8)
+			.attr('stroke', '#FFF')
+			.attr('stroke-width', 3);
+			
+		var s = d3.scale.ordinal()
+			.domain(energy.map(function(d,i) {
+				return i;
+			}))
+			.rangePoints([w*0.15, w*0.85]);
+		
+		svg.selectAll(".item-names")
+			.data(energy_stack)
+			.enter()
+			.append("text")
+			.attr("class", "item-names")
+			.attr("x", function(d, i) {
+				console.log("s(i) = " + s(i));
+				return s(i);
+			})
+			.attr("y", function(d) {
+				return h - 10;
+			})
+			.attr('fill', function(d,i) {
+				return colors(i);
+			})
+			.text(function(d) {
+				return "" + d['name'] + "";
+			})
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+		
+		.item-names {
+			font-family: sans-serif;
+		}
+	</style>
+</body>
+</html>
