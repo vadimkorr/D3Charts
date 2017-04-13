@@ -1,0 +1,151 @@
+<!--
+
+
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Top tracks</h1>
+	<h3 id="top_label"></h3>
+	<div id="svg-container"></div>
+	<br/>
+	<input type="range" id="slider" style="width: 660;" min="0" max="50" value="10" step="1" onchange="filter(this.value)"/>
+	
+
+	<script type="text/javascript">
+		var w = 660;
+		var h = 450;
+		var margin = 80;
+		var nodes = 0;
+		var labels = null;
+		var allTracks = [];
+		var colors = d3.scale.category20();
+		
+		var svg = d3.select('#svg-container').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+		
+		var url = 'https://raw.githubusercontent.com/gr33ndata/d3book/master/ch9/data/lastfm.json';
+		
+		d3.json(url, function(error, data) {
+			if (error) {
+				console.log(error);
+				return;
+			}
+			
+			var tracks = data.tracks.track;
+			tracks = tracks.sort(function(a,b) {
+				var a = parseInt(a.listeners, 10);
+				var b = parseInt(b.listeners, 10);
+				return (a == b) ? 0 : ((a > b) ? -1 : 1);
+			});
+			draw(tracks);
+		})
+		
+		//change scale according to number of tracks to be shown
+		var setScales = function(tracks) {
+			var xDomain = d3.extent(tracks, function(d) {
+				return parseInt(d.listeners, 10);
+			});
+			var yDomain = d3.extent(tracks, function(d) {
+				return parseInt(d.playcount, 10)
+			});
+			return {
+				'xScale': d3.scale.log().base(10).domain(xDomain)
+					.range([margin, w-margin]),
+				'yScale': d3.scale.log().base(10).domain(yDomain)
+					.range([h-margin, margin]),
+			}
+		} 
+		
+		//draw and set everyting once we get the data
+		var draw = function(tracks) {
+			//define x and y scales, based on number of available tracks
+			var scales = setScales(tracks);
+			var xScale = scales.xScale;
+			var yScale = scales.yScale;
+		
+			nodes = svg.selectAll('node')
+				.data(tracks)
+				.enter()
+				.append('circle')
+				.attr('class', 'node')
+				.attr('cx', function(d,i) {
+					return xScale(d.listeners);
+				})
+				.attr('cy', function(d,i) {
+					return yScale(d.playcount);
+				})
+				.attr('r', function(d,i) {
+					return 25*Math.pow(0.96, i);
+				})
+				.attr('fill', function(d,i) {
+					return colors(d.artist.name);
+				})
+				.on('mouseover', function(d,i) {
+					//set label to track/artist names upon hover
+					d3.select('#top_label')
+						.text('' + d.name + ' by ' + d.artist.name);
+				})
+				.on('mouseout', function(d,i) {
+					//set label back to number of tracks we have
+					d3.select('#top_label')
+						.text('Listing top ' + tracks.length + ' tracks');
+				});
+			
+			allTracks = tracks;
+			
+			//set labels to number of tracks retrieved
+			d3.selct('#top_label')
+				.text('Listing top ' + tracks.length + ' tracks');
+			
+			// Move slider to show all 50 tracks.
+			d3.select('#slider')
+				.attr('max', tracks.length)
+				.attr('value', tracks.length);
+		}//end of Draw
+		
+		// Move dots when slider is changed.
+		var filter = function(n){
+			// We only want top n tracks,
+			var tracks = allTracks.slice(0, n);
+			// Define x and y scales accordingly
+			var scales = setScales(tracks);
+			var xScale = scales.xScale;
+			var yScale = scales.yScale;
+			// Change the top label according to the new value of n.
+			d3.select('#top_label').text('Listing top ' + tracks.length + ' tracks');
+			// Move nodes to their new positions.
+			nodes.transition()
+				.duration(700)
+				.attr('cx', function(d,i) { 
+					return xScale(d.listeners); 
+				})
+				.attr('cy', function(d,i) { 
+					return yScale(d.playcount); 
+				})
+				.style("opacity", function(d, i) { 
+					return (i > n) ? 0 : 1; 
+				});
+		} // End of filter() 
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>
