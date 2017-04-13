@@ -8,7 +8,7 @@ function initMap() {
 	});
 	
 	//load data, when data comes back, create an overlay
-	d3.json('data.json', function(error, data) {
+	d3.json('https://raw.githubusercontent.com/vadimkorr/D3Charts/master/charts/map/data.json', function(error, data) {
 		if (error) {
 			console.log(error);
 			return;
