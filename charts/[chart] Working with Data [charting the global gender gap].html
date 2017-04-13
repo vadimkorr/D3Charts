@@ -1,0 +1,172 @@
+<!--
+
+
+
+-->
+
+<html>
+<head>
+	<title>D3 Charts</title>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+	<h1 class="main-title">Global Gender Gap</h1>
+	<svg></svg>
+	
+	<script type="text/javascript">
+	
+		//get the data example
+		/*var access = function(d) {
+			return {
+				country: d['Country'],
+				rank: parseInt(d['Overall - Rank'], 10)
+			};
+		}
+		var callback = function(error, rows) {
+			if (error) {
+				console.log(error.responseText);
+				return;
+			}
+			console.log(rows);
+		}
+		d3.csv(url, access, callback);*/
+		
+		var w = 1200;
+		var h = 620;
+		var margin = 20;
+		var svg = d3.select('body').append('svg')
+			.attr('width', w)
+			.attr('height', h);
+		var colors = d3.scale.category10();
+		
+		var draw = function(rows) {
+			//scores are b/n 0 and 1, hence xScale
+			var xScale = d3.scale.linear()
+				.domain([0,1])
+				.range([margin, w-margin]);
+			
+			//we want bars occupy the whole vertical area
+			var yScale = d3.scale.ordinal().
+				domain(rows.map(function(d,i) {
+					return i;
+				}))
+				.rangePoints([margin, h-margin]);
+			var dir = 1;	
+			var sortMove = function(coll, pDir) {
+				coll.sort(function(a,b) {
+							return (a.score == b.score) ? 0 : ((a.score > b.score) ? pDir : -pDir);
+						})
+						.transition()
+						.duration(function(d,i) {
+							return 70 * i;
+						})
+						.attr('y', function(d,i) {
+							return yScale(i);
+						});
+			}
+			
+			//A bar's width is equal to the height without the margin,
+			//divided by the number of rows in our data
+			//THen the 0.85 is to make it a little bit less, so we have spaces b/n bars
+			var barsWidth = 0.85 * (h - 2*margin) / rows.length;
+			
+			var bar = svg.selectAll('bar')
+				.data(rows)
+				.enter()
+				.append('rect')
+				.attr('class', 'bar')
+				.attr('x', function(d,i) {
+					return xScale(0);
+				})
+				.attr('y', function(d,i) {
+					return yScale(i);
+				})
+				.attr('width', function(d,i) {
+					return xScale(d.score) - xScale(0);
+				})
+				.attr('height', function(d,i) {
+					return barsWidth;
+				})
+				.attr('fill', function(d,i) {
+					return colors(d.region);
+				});
+			
+			var text = svg.selectAll('text')
+				.data(rows)
+				.enter()
+				.append('text')
+				.text(function(d,i) {
+					return d.country;
+				})
+				.attr('x', function(d,i) {
+					return xScale(d.score) - xScale(0) + 50;
+				})
+				.attr('y', function(d,i) {
+					return yScale(i) + 10;
+				})
+				.attr('fill', function(d,i) {
+					return colors(d.region);
+				})
+				.attr('class', 'country-name');
+			
+			bar.on('click',function() {
+				sortMove(bar, dir);
+				sortMove(text, dir);
+				dir = -dir;
+			});
+		}
+	
+		var url = 'https://raw.githubusercontent.com/ali-ce/datasets/master/Global-Gender-Gap-Index-2014/Country%20Main%20Indices.csv';
+		d3.csv(url, function(d){
+			return {
+				country: d['Country'],
+				// We convert income group from '1 (High Income)' to '1'
+				income: d['Income Group'].split(' ')[0],
+				region: d['Region'],
+				// Scores are between 0 and 1.
+				score: d['Overall - Score'],
+			};}, 
+			function(error, rows) {
+				// In case of error, print error message and exit
+				if (error) {
+					console.log(error.responseText);
+					return;
+				}
+				// We use filter to plot high income countries only. 
+				draw(rows.filter(function(d,i){
+						return (d.income == '1');
+					})
+					//If you return ‘-1’ (or any negative value),
+					//then you want ‘a’ to come before ‘b’. 
+					//If a positive value is returned, then ‘a’ should come after ‘b’; 
+					//otherwise, ‘a’ and ‘b’ are considered equal and the order is arbitrary. 
+					//In the example here, we compared the scores of the
+					//elements, and returned ‘-1’, ‘0’ or ‘1’ accordingly. 
+					/*.sort(function(a,b){
+						return (a.score == b.score) ? 0 : ((a.score > b.score) ? -1 : 1);
+					})*/
+				);
+			}
+		); 
+		
+		
+	</script>
+	
+	<!-- CHART STYLES -->
+	<style>
+		.country-name {
+			font-family: sans-serif;
+			font-size: 12px;
+		}
+	</style>
+	
+	<!-- PAGE STYLES -->
+	<style>
+		h1.main-title {
+			font-family: sans-serif;
+			color: #5599FF;
+			text-align: center;
+		}
+	</style>
+</body>
+</html>
