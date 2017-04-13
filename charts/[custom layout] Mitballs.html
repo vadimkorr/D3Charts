@@ -132,7 +132,7 @@
 	
 	<!-- 3. ***** USAGE ***** -->
 	<script type="text/javascript">	
-		var cupWinners = [ 
+		/*var cupWinners = [ 
 			{'country': 'Brazil', 	'wins': 5, 'continent': 'Americas'}, 
 			{'country': 'Germany', 	'wins': 4, 'continent': 'Europe'}, 
 			{'country': 'Italy', 	'wins': 4, 'continent': 'Europe'}, 
@@ -141,6 +141,50 @@
 			{'country': 'France', 	'wins': 1, 'continent': 'Europe'}, 
 			{'country': 'England', 	'wins': 1, 'continent': 'Europe'}, 
 			{'country': 'Spain', 	'wins': 1, 'continent': 'Europe'}, 
+		];*/
+		
+		//#addition: colors for pie
+		var cupWinners = [ {
+				'country': 'Brazil', 
+				'wins': 5,
+				'continent': 'Americas',
+				'colors': ['#fdd835','#fdd835','#0d47a1','#fdd835'] 
+			},{
+				'country': 'Germany',
+				'wins': 4,
+				'continent': 'Europe',
+				'colors': ['#eeeeee','#eeeeee', '#212121', '#eeeeee']
+			},{
+				'country': 'Italy',
+				'wins': 4,
+				'continent': 'Europe',
+				'colors': ['#0d47a1', '#eeeeee', '#0d47a1', '#eeeeee']
+			},{
+				'country': 'Argentina',
+				'wins': 2,
+				'continent': 'Americas',
+				'colors': ['#b3e5fc','#eeeeee','#212121','#eeeeee']
+			},{
+				'country': 'Uruguay',
+				'wins': 2,
+				'continent': 'Americas',
+				'colors': ['#b3e5fc','#b3e5fc','#212121','#b3e5fc']
+			},{
+				'country': 'France',
+				'wins': 1,
+				'continent': 'Europe',
+				'colors': ['#eeeeee','#eeeeee','#212121','#eeeeee']
+			},{
+				'country': 'England',
+				'wins': 1,
+				'continent': 'Europe',
+				'colors': ['#0d47a1','#eeeeee','#CC0011','#eeeeee']
+			},{
+				'country': 'Spain',
+				'wins': 1,
+				'continent': 'Europe',
+				'colors': ['#CC0011','#fdd835','#CC0011','#fdd835']
+			}, 
 		];
 		
 		var w = 640;
@@ -153,8 +197,34 @@
 				return d.wins;
 			})
 			.size([w,h]);
+			
+		//#addition: pie layout
+		var pie = d3.layout.pie()
+			.startAngle(-0.4*Math.PI)//moving the start angle a bit to the left
+			.endAngle(1.6*Math.PI)//making sure we have a full circle still
+			.sort(null);
+		//#addition: to create donuts you need an arc generator
+		var arc = d3.svg.arc()
+			.innerRadius(0.6)
+			.outerRadius(0.95);
 		
 		var transformedData = meatballs.cook(cupWinners);
+		
+		transformedData.forEach(function(d,i) {
+			//each donut will have its own CSS class
+			var cssClass = d.country;
+			var colors = d.colors;
+			svg.selectAll(cssClass)
+				.data(pie([4,1,4,1]))
+				.enter()
+				.append('path')
+				.attr('class', cssClass)
+				.attr('d', arc)
+				.attr('fill', function(d,i) {
+					return colors[i];
+				})
+				.attr('transform', 'translate(' + d.x + ',' + d.y + ') scale(' + d.r + ')');
+		});
 
 		svg.selectAll('circle')
 			.data(transformedData)
@@ -172,7 +242,7 @@
 			.style('fill', function(d,i) {
 				return (d.continent == 'Americas') ? '#ff7f0e' : '#1f77b4';
 			})
-			.style('opacity', 0.55);
+			.style('opacity', 0.25);
 		
 		svg.selectAll('text')
 			.data(transformedData)
